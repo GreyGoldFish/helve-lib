@@ -1,4 +1,4 @@
-local ENUMS = require("core.constants").ENUMS
+local CONSTANTS = require("core.constants")
 
 local FIRE_LANCE = {
     id = "FIRE_LANCE",
@@ -8,7 +8,7 @@ local FIRE_LANCE = {
     ammo_class = "GUNPOWDER",
     attacks = {
         {
-            attack_type = ENUMS.ATTACK_TYPES.EDGE,
+            attack_type = CONSTANTS.ENUMS.ATTACK_TYPES.EDGE,
             contact_area = 15,
             penetration_size = 1200,
             verb_2nd = "stab", verb_3rd = "stabs",
@@ -18,7 +18,7 @@ local FIRE_LANCE = {
     },
     shoot_force = 100,
     loaded_nocked = {
-        ammo_handling = ENUMS.AMMO_HANDLING.LOADED,
+        ammo_handling = CONSTANTS.ENUMS.AMMO_HANDLING.LOADED,
         maximum_ticks = 10,
         minimum_ticks = 2,
     }

@@ -1,5 +1,7 @@
 local GENERATOR = {}
-local schemas <const> = require("core.schemas")
+local schemas = require("data.schemas")
+
+-- TODO: Add unit tests
 
 --- Add a simple token if value exists.
 -- @param lines table: Lines table to append to

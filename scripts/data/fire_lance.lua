@@ -5,7 +5,7 @@ local FIRE_LANCE = {
     name = "fire lance", name_plural = "fire lances",
     material_size = 100,
     skill = "SPEAR",
-    ammo_class = "GUNPOWDER",
+    ammo_class = "BLACK_POWDER",
     attacks = {
         {
             attack_type = CONSTANTS.ENUMS.ATTACK_TYPES.EDGE,

@@ -16,7 +16,18 @@ Usage
     disable helve-lib
 ]====]
 
+--[[
+# DEBUGGING
+- Check errorlog.txt
+- Check stderr.log
+- Check stdout.log
+- Check lualog.log (if using DF Lua API)
+--]]
+
+-- TODO: I wonder if it's possible to make world generation understand that fire lances have powers
+
 local repeatUtil = require('repeat-util')
+
 local utils = require('utils')
 local customRawTokens = require('custom-raw-tokens')
 
@@ -24,28 +35,21 @@ local attach_item_powers = dfhack.reqscript("internal/helve-lib/attach-item-powe
 
 local GLOBAL_KEY = 'helve-lib'
 
-local function get_default_state()
-    return {
-        enabled=true,
-    }
-end
-
-state = state or get_default_state()
-
--- implement the enabled API so DFHack can read this script's status
+-- Implement the enabled API so DFHack can read this script's status
 function isEnabled()
     return state.enabled
 end
 
--- call this whenever the contents of the state table changes
+-- Call this whenever the contents of the state table changes
 local function persist_state()
     dfhack.persistent.saveSiteData(GLOBAL_KEY, state)
 end
 
 local function do_enable()
+    -- Do any initialization the internal scripts might require
     attach_item_powers.onEnable()
 
-    repeatUtil.scheduleEvery(GLOBAL_KEY .. " every tick", 1000, 'ticks', function()
+    repeatUtil.scheduleEvery(GLOBAL_KEY, 1, 'ticks', function()
         attach_item_powers.everyTick()
     end)
     
@@ -53,37 +57,52 @@ local function do_enable()
 end
 
 local function do_disable()
+    -- Call any shutdown functions the internal scripts might require
     attach_item_powers.onDisable()
 
-    repeatUtil.cancel(GLOBAL_KEY .. " every tick")
+    repeatUtil.cancel(GLOBAL_KEY)
 
     dfhack.println("Disabled " .. GLOBAL_KEY)
 end
 
+local function get_default_state()
+    return {
+        enabled=true,
+    }
+end
+
+-- Register state change handler
 dfhack.onStateChange[GLOBAL_KEY] = function(state_change)
+    -- Forward state changes to internal modules
+    if attach_item_powers.onStateChange then
+        attach_item_powers.onStateChange(state_change)
+    end
+    
     if state_change == SC_MAP_UNLOADED then
         do_disable()
-
-        -- ensure our mod doesn't run when a different
-        -- world is loaded where we are *not* active
+        
+        -- Ensure our mod doesn't run when a different
+        -- World is loaded where we are *not* active
         dfhack.onStateChange[GLOBAL_KEY] = nil
-
+        
         return
     end
 
-    if state_change ~= SC_MAP_LOADED or not (dfhack.world.isFortressMode() or dfhack.world.isArena() or dfhack.world.isAdventureMode()) then
+    -- TODO: Review this
+    if state_change ~= SC_MAP_LOADED then
         return
     end
 
-    -- retrieve state saved in game. merge with default state so config
-    -- saved from previous versions can pick up newer defaults.
-    state = get_default_state()
+    -- Retrieve state saved in game. merge with default state so config
+    -- Saved from previous versions can pick up newer defaults.
+    state = state or get_default_state()
     utils.assign(state, dfhack.persistent.getSiteData(GLOBAL_KEY, state))
     if state.enabled then
         do_enable()
     end
 end
 
+-- TODO: Review this
 if dfhack_flags.module then
     return
 end
@@ -96,16 +115,6 @@ if not dfhack_flags.enable then
 end
 
 if dfhack_flags.enable_state then
-    local current_df_version = dfhack.getDFVersion():sub(2, -1):gsub("[ -].+$", "") -- Remove v and extra info, leaving only the numbers
-	if consts.DFVersion ~= current_df_version then
-		dialogs.showMessage("Error",
-			"This version of " .. GLOBAL_KEY .. " is for DF version " .. consts.DFVersion .. ",\n" ..
-			"current DF version is " .. current_df_version .. ". The script will now disable.\n" ..
-			"Behaviour may break."
-		)
-		disable()
-		return
-	end
     state.enabled = true
     do_enable()
 else

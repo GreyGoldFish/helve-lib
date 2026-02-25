@@ -23,6 +23,7 @@ function GENERATOR.generate_weapon_raw(weapon_id, weapon_data, is_ranged)
 
    -- Header
    lines[#lines + 1] = string.format("[ITEM_WEAPON:%s]", weapon_id)
+   -- Add [GENERATED] to save properly
    add_generated_info(lines)
 
    -- Required tokens
@@ -93,8 +94,7 @@ function GENERATOR.generate_weapon_raw(weapon_id, weapon_data, is_ranged)
          end
       end
    end
-
-   print_table(lines)
+   
    return table.concat(lines, "\n")
 end
 

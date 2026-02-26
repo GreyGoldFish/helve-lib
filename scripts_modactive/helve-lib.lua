@@ -7,7 +7,7 @@ helve-lib
  
 Tags: gameplay | military
  
-Attaches item powers to items based on custom raw tokens.
+Inserts item powers to items based on custom raw tokens.
 
 Usage
 -----
@@ -31,7 +31,7 @@ local repeatUtil = require('repeat-util')
 local utils = require('utils')
 local customRawTokens = require('custom-raw-tokens')
 
-local attach_item_powers = dfhack.reqscript("internal/helve-lib/attach-item-powers")
+local insert_item_powers = dfhack.reqscript("internal/helve-lib/insert-item-powers")
 
 local GLOBAL_KEY = 'helve-lib'
 
@@ -47,10 +47,10 @@ end
 
 local function do_enable()
     -- Do any initialization the internal scripts might require
-    attach_item_powers.onEnable()
+    insert_item_powers.onEnable()
 
     repeatUtil.scheduleEvery(GLOBAL_KEY, 1, 'ticks', function()
-        attach_item_powers.everyTick()
+        insert_item_powers.everyTick()
     end)
     
     dfhack.println("Enabled " .. GLOBAL_KEY)
@@ -58,7 +58,7 @@ end
 
 local function do_disable()
     -- Call any shutdown functions the internal scripts might require
-    attach_item_powers.onDisable()
+    insert_item_powers.onDisable()
 
     repeatUtil.cancel(GLOBAL_KEY)
 
@@ -74,8 +74,8 @@ end
 -- Register state change handler
 dfhack.onStateChange[GLOBAL_KEY] = function(state_change)
     -- Forward state changes to internal modules
-    if attach_item_powers.onStateChange then
-        attach_item_powers.onStateChange(state_change)
+    if insert_item_powers.onStateChange then
+        insert_item_powers.onStateChange(state_change)
     end
     
     if state_change == SC_MAP_UNLOADED then

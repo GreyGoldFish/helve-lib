@@ -1,21 +1,20 @@
 --@ module=true
 
-local ITEM_SUBTYPE_TOKEN = "ITEM_WEAPON_FIRE_LANCE"
+local utils = dfhack.reqscript("internal/helve-lib/utils")
+
+-- TODO: Replace me
+local ITEM_SUBTYPE_TOKEN = ""
 local INTERACTION_NAME = "SHOOT_FIRE_ITEM_POWER"
 
-local interaction_index = nil
+local item_power_interaction_index = nil
 
-local handled = {}
+-- TODO: Review this (memory leak?)
+local handled_items = {}
 
-local function get_subtype_token(item)
-    local ok, def = pcall(function()
-        return dfhack.items.getSubtypeDef(item:getType(), item:getSubtype())
-    end)
-    return (ok and def and def.id) or nil
-end
+local last_item_count = 0
 
 -- Find the interaction index of the magic power
-local function get_interaction_index(interaction_name)
+local function get_item_power_interaction_index(interaction_name)
     for i, interaction in ipairs(df.global.world.raws.interactions.all) do
         if interaction.name == interaction_name then
             return i
@@ -30,7 +29,7 @@ end
 function onStateChange(state_change)
     if state_change == SC_MAP_UNLOADED then
         -- Reset index when map is unloaded
-        interaction_index = nil
+        item_power_interaction_index = nil
     end
 end
 
@@ -50,7 +49,7 @@ local function insert_magic_power_to_item(item)
     -- Check if the item already has the power
     if item.magic and item.magic.power then
         for _, power in ipairs(item.magic.power) do
-            if power.interaction_index == interaction_index then
+            if power.interaction_index == item_power_interaction_index then
                 return -- Already has power
             end
         end
@@ -58,7 +57,7 @@ local function insert_magic_power_to_item(item)
         -- Attach the power
         local new_power = {
             new = true,
-            interaction_index = interaction_index,
+            interaction_index = item_power_interaction_index,
             interaction_source_index = 0,
             delay = 0,
         }
@@ -66,27 +65,37 @@ local function insert_magic_power_to_item(item)
     end
 end
 
--- Called every tick
+-- Called every in-game tick
 function everyTick()
-    if not interaction_index then
-        interaction_index = get_interaction_index(INTERACTION_NAME)
+    if not item_power_interaction_index then
+        item_power_interaction_index = get_item_power_interaction_index(INTERACTION_NAME)
     end
 
+    local current_item_count = #df.global.world.items.all
+    if current_item_count == last_item_count then
+        return
+    end
+    last_item_count = current_item_count
+
     for _, item in ipairs(df.global.world.items.all) do
-        if not handled[item.id] then
-            local token = get_subtype_token(item)
+        if not handled_items[item.id] then
+            local token = utils.get_subtype_token(item)
             if token == ITEM_SUBTYPE_TOKEN then
                 insert_magic_power_to_item(item)
             end
-            handled[item.id] = true
+            handled_items[item.id] = true
         end
     end
 end
 
 -- Called when mod is enabled
 function onEnable()
+    item_power_interaction_index = nil
+    handled_items = {}
 end
 
 -- Called when mod is disabled
 function onDisable()
+    item_power_interaction_index = nil
+    handled_items = {}
 end

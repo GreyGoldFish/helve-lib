@@ -27,11 +27,10 @@ Usage
 -- TODO: I wonder if it's possible to make world generation understand that fire lances have powers
 
 local repeatUtil = require('repeat-util')
-
 local utils = require('utils')
-local customRawTokens = require('custom-raw-tokens')
 
 local insert_item_powers = dfhack.reqscript("internal/helve-lib/insert-item-powers")
+local shoot_fire = dfhack.reqscript("internal/helve-lib/shoot-fire")
 
 local GLOBAL_KEY = 'helve-lib'
 
@@ -48,6 +47,7 @@ end
 local function do_enable()
     -- Do any initialization the internal scripts might require
     insert_item_powers.onEnable()
+    shoot_fire.onEnable()
 
     repeatUtil.scheduleEvery(GLOBAL_KEY, 1, 'ticks', function()
         insert_item_powers.everyTick()
@@ -59,6 +59,7 @@ end
 local function do_disable()
     -- Call any shutdown functions the internal scripts might require
     insert_item_powers.onDisable()
+    shoot_fire.onDisable()
 
     repeatUtil.cancel(GLOBAL_KEY)
 
@@ -80,11 +81,6 @@ dfhack.onStateChange[GLOBAL_KEY] = function(state_change)
     
     if state_change == SC_MAP_UNLOADED then
         do_disable()
-        
-        -- Ensure our mod doesn't run when a different
-        -- World is loaded where we are *not* active
-        dfhack.onStateChange[GLOBAL_KEY] = nil
-        
         return
     end
 

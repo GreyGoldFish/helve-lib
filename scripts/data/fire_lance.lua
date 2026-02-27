@@ -5,7 +5,7 @@ local FIRE_LANCE = {
     name = "fire lance", name_plural = "fire lances",
     material_size = 100,
     skill = "SPEAR",
-    ammo_class = "BLACK_POWDER",
+    ammo_class = "FIRE_CHARGE",
     attacks = {
         {
             attack_type = CONSTANTS.ENUMS.ATTACK_TYPES.EDGE,
@@ -16,11 +16,11 @@ local FIRE_LANCE = {
             velocity_multiplier = 550,
         },
     },
-    shoot_force = 100,
+    shoot_force = 1200 ,
     loaded_nocked = {
         ammo_handling = CONSTANTS.ENUMS.AMMO_HANDLING.LOADED,
-        maximum_ticks = 10,
-        minimum_ticks = 2,
+        maximum_ticks = 100,
+        minimum_ticks = 60,
     }
 }
 

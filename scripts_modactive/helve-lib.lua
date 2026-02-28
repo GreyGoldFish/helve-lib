@@ -24,13 +24,14 @@ Usage
 - Check lualog.log (if using DF Lua API)
 --]]
 
--- TODO: I wonder if it's possible to make world generation understand that fire lances have powers
+-- TODO: I wonder if it's possible to make world generation give fire lances to historical figures
 
 local repeatUtil = require('repeat-util')
 local utils = require('utils')
 
 local insert_item_powers = dfhack.reqscript("internal/helve-lib/insert-item-powers")
-local shoot_fire = dfhack.reqscript("internal/helve-lib/shoot-fire")
+local shoot_fireball = dfhack.reqscript("internal/helve-lib/shoot-fireball")
+local flamethrower = dfhack.reqscript("internal/helve-lib/flamethrower")
 
 local GLOBAL_KEY = 'helve-lib'
 
@@ -47,7 +48,8 @@ end
 local function do_enable()
     -- Do any initialization the internal scripts might require
     insert_item_powers.onEnable()
-    shoot_fire.onEnable()
+    shoot_fireball.onEnable()
+    flamethrower.onEnable()
 
     repeatUtil.scheduleEvery(GLOBAL_KEY, 1, 'ticks', function()
         insert_item_powers.everyTick()
@@ -59,7 +61,8 @@ end
 local function do_disable()
     -- Call any shutdown functions the internal scripts might require
     insert_item_powers.onDisable()
-    shoot_fire.onDisable()
+    shoot_fireball.onDisable()
+    flamethrower.onDisable()
 
     repeatUtil.cancel(GLOBAL_KEY)
 

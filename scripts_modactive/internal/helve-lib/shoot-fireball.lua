@@ -4,7 +4,8 @@ local eventful = require('plugins.eventful')
 local extinguish = dfhack.reqscript("extinguish")
 local utils = dfhack.reqscript("internal/helve-lib/utils")
 
-local FUEL_AMMO_TOKEN = "ITEM_AMMO_FIRE_CHARGE"
+-- TODO: Replace me
+local FUEL_AMMO_TOKEN = ""
 local DEFAULT_RANGE = 8
 local WEAPON_RANGES = {
     ["ITEM_WEAPON_FIRE_LANCE"] = DEFAULT_RANGE,
@@ -14,7 +15,7 @@ local MAGICAL_PROJECTILE_DAMAGE = 0
 local EXTINGUISH_RADIUS = 3
 local EXTINGUISH_DELAY = 50     -- Ticks before surrounding area is extinguished
 local IMPACT_BURN_DURATION = 200 -- Ticks before impact tile itself is extinguished
-local CALLBACK_ID = "helve-lib-flamethrower"
+local CALLBACK_ID = "helve-lib-shoot-fireball"
 
 local magic_projectiles = {}
 local magic_projectile_positions = {}
@@ -95,6 +96,7 @@ local function watch_magic_projectile(id)
         magic_projectiles[id] = nil
         magic_projectile_positions[id] = nil
         if pos then
+            -- TODO: Don't extinguish fire that wasn't made by me
             extinguish_area(pos)
         end
     end
@@ -151,15 +153,16 @@ local function consume_projectile(projectile)
 end
 
 local function on_projectile_move(projectile)
-    if projectile.item and
-       projectile.item:getType() == df.item_type.AMMO and
-       utils.get_subtype_token(projectile.item) == FUEL_AMMO_TOKEN then
-        create_magic_projectile(projectile)
-        consume_projectile(projectile)
-    end
+    if projectile.flags.to_be_deleted then return end
+    if not projectile.item then return end
+    if projectile.item:getType() ~= df.item_type.AMMO then return end
+    if utils.get_subtype_token(projectile.item) ~= FUEL_AMMO_TOKEN then return end
+
+    create_magic_projectile(projectile)
+    consume_projectile(projectile)
 end
 
-dfhack.onStateChange.shoot_fire_cleanup = function(code)
+dfhack.onStateChange.shoot_fireball_cleanup = function(code)
     if code == SC_WORLD_UNLOADED then
         world_active = false
         magic_projectiles = {}

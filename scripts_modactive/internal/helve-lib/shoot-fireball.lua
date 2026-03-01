@@ -2,7 +2,7 @@
 
 local eventful = require('plugins.eventful')
 local extinguish = dfhack.reqscript("extinguish")
-local utils = dfhack.reqscript("internal/helve-lib/utils")
+local utils = dfhack.reqscript("internal/helve-lib/helve-lib-utils")
 
 -- TODO: Replace me
 local FUEL_AMMO_TOKEN = ""
@@ -156,13 +156,14 @@ local function on_projectile_move(projectile)
     if projectile.flags.to_be_deleted then return end
     if not projectile.item then return end
     if projectile.item:getType() ~= df.item_type.AMMO then return end
-    if utils.get_subtype_token(projectile.item) ~= FUEL_AMMO_TOKEN then return end
+    local token = utils.get_subtype_token(projectile.item)
+    if token ~= FUEL_AMMO_TOKEN then return end
 
     create_magic_projectile(projectile)
     consume_projectile(projectile)
 end
 
-dfhack.onStateChange.shoot_fireball_cleanup = function(code)
+dfhack.onStateChange[CALLBACK_ID] = function(code)
     if code == SC_WORLD_UNLOADED then
         world_active = false
         magic_projectiles = {}

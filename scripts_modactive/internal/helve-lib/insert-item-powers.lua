@@ -1,6 +1,6 @@
 --@ module=true
 
-local utils = dfhack.reqscript("internal/helve-lib/utils")
+local utils = dfhack.reqscript("internal/helve-lib/helve-lib-utils")
 
 -- TODO: Replace me
 local ITEM_SUBTYPE_TOKEN = ""

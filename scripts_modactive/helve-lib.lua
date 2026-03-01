@@ -16,22 +16,15 @@ Usage
     disable helve-lib
 ]====]
 
---[[
-# DEBUGGING
-- Check errorlog.txt
-- Check stderr.log
-- Check stdout.log
-- Check lualog.log (if using DF Lua API)
---]]
-
--- TODO: I wonder if it's possible to make world generation give fire lances to historical figures
-
+-- DFHack modules
+local eventful = require('plugins.eventful')
 local repeatUtil = require('repeat-util')
 local utils = require('utils')
 
+-- Internal modules
 local insert_item_powers = dfhack.reqscript("internal/helve-lib/insert-item-powers")
 local shoot_fireball = dfhack.reqscript("internal/helve-lib/shoot-fireball")
-local flamethrower = dfhack.reqscript("internal/helve-lib/flamethrower")
+local shoot_fire_cone = dfhack.reqscript("internal/helve-lib/helve-lib-shoot-fire-cone")
 
 local GLOBAL_KEY = 'helve-lib'
 
@@ -47,22 +40,20 @@ end
 
 local function do_enable()
     -- Do any initialization the internal scripts might require
-    insert_item_powers.onEnable()
-    shoot_fireball.onEnable()
-    flamethrower.onEnable()
+    shoot_fire_cone.onEnable()
 
-    repeatUtil.scheduleEvery(GLOBAL_KEY, 1, 'ticks', function()
-        insert_item_powers.everyTick()
-    end)
+    eventful.onProjItemCheckMovement[GLOBAL_KEY] = function(...)
+        shoot_fire_cone.onProjItemCheckMovement(...)
+    end
     
     dfhack.println("Enabled " .. GLOBAL_KEY)
 end
 
 local function do_disable()
     -- Call any shutdown functions the internal scripts might require
-    insert_item_powers.onDisable()
-    shoot_fireball.onDisable()
-    flamethrower.onDisable()
+    shoot_fire_cone.onDisable()
+
+    eventful.onProjItemCheckMovement[GLOBAL_KEY] = nil
 
     repeatUtil.cancel(GLOBAL_KEY)
 
@@ -75,26 +66,28 @@ local function get_default_state()
     }
 end
 
+-- Retrieve state saved in game. merge with default state so config
+-- Saved from previous versions can pick up newer defaults.
+-- Initialize state at module level
+state = state or get_default_state()
+
 -- Register state change handler
 dfhack.onStateChange[GLOBAL_KEY] = function(state_change)
-    -- Forward state changes to internal modules
-    if insert_item_powers.onStateChange then
-        insert_item_powers.onStateChange(state_change)
-    end
-    
     if state_change == SC_MAP_UNLOADED then
         do_disable()
+        -- ensure our mod doesn't run when a different
+        -- world is loaded where we are *not* active
+        dfhack.onStateChange[GLOBAL_KEY] = nil
         return
     end
 
-    -- TODO: Review this
     if state_change ~= SC_MAP_LOADED then
         return
     end
 
-    -- Retrieve state saved in game. merge with default state so config
-    -- Saved from previous versions can pick up newer defaults.
-    state = state or get_default_state()
+    -- retrieve state saved in game. merge with default state so config
+    -- saved from previous versions can pick up newer defaults.
+    state = get_default_state()
     utils.assign(state, dfhack.persistent.getSiteData(GLOBAL_KEY, state))
     if state.enabled then
         do_enable()

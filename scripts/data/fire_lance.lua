@@ -16,12 +16,14 @@ local FIRE_LANCE = {
             velocity_multiplier = 550,
         },
     },
-    shoot_force = 1200,
-    shoot_max_vel = 100,
+    shoot_force = 600,
+    shoot_max_vel = 0,
+    initiate_shot_time = 15,
+    shot_recovery_time = 1200,
     loaded_nocked = {
         ammo_handling = CONSTANTS.ENUMS.AMMO_HANDLING.LOADED,
-        maximum_ticks = 1,
-        minimum_ticks = 1,
+        maximum_ticks = 120,
+        minimum_ticks = 80,
     }
 }
 
